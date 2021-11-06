@@ -72,7 +72,7 @@ label_dict = {
 
 }
 def main():
-    
+    pass
     #print(register_dict)
 
 if __name__ == "__main__":
