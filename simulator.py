@@ -253,6 +253,7 @@ class Memory:
         self.res = 0
         self.loadval = 0
         self.op2 = 0
+    
     def execute(self,X):
         (self.instruc,self.res,self.rd,self.op2) = X.sendToMemory()
         if(self.instruc[25:29]=="01000"):
@@ -261,9 +262,26 @@ class Memory:
         elif(self.instruc[25:29]=="00000"):
             # load
             self.loadval = RF[self.res]
-        
+    
+    def sendToWB(self):
+        return (self.instruc,self.rd,self.res,self.loadval)
+
 class WriteBack:
-    pass
+    def __init__(self):
+        self.instruc = 0
+        self.rd = 0
+        self.res = 0
+        self.loadval = 0
+
+    def execute(self,M):
+        (self.instruc,self.rd,self.res,self.loadval) = M.sendToWB()
+        if(self.instruc[25:29]=="01100" or self.instruc[25:29]=="00100" ):
+            # arithmetic instruction
+            RF[self.rd] = self.res
+        elif(self.instruc[25:29]=="00000"):
+            # load instruction
+            RF[self.rd] = self.loadval
+
 
 # pipelined approach using queue, bypassing, stalling to be implemented to address structural,data and control hazards
 
