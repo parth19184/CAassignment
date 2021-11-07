@@ -66,7 +66,34 @@ type_dict = {
     "sll": "01100",
     "sra": "01100"
 }
+dict_01100_1 = {
+    "add": "00000",
+    "sub": "01000"
+}
 
+dict_01100_2 = {
+    "and":"111",
+    "or":"110",
+    "xor":"100",
+    "sll":"001"
+}
+dict_01100_3 = {
+    "sra": "101"
+}
+
+
+def encode_instruction(instruction):
+    words_list = instruction.splt()
+    first_word = words_list[0]
+    if type_dict[first_word] == "01100":
+        if first_word in dict_01100_1.keys():
+            return dict_01100_1[first_word] + "00" + register_dict[words_list[3]] + register_dict[words_list[4]] + "000" + register_dict[words_list[2]] + "0110011"
+        elif first_word in dict_01100_2.keys():
+            return "00000" + "00" + register_dict[words_list[3]] + register_dict[words_list[4]] + dict_01100_2[first_word] + register_dict[words_list[2]] + "0110011"
+        else:
+            return "01000" + "00" + register_dict[words_list[3]] + register_dict[words_list[4]] + dict_01100_3[first_word] + register_dict[words_list[2]] + "0110011"
+    elif type_dict[first_word] == "11000":
+        pass
 #we will go through the code in one iteration and see where the labels are then assign them with their line number 
 label_dict = {
 
