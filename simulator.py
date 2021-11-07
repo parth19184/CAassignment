@@ -283,14 +283,16 @@ class WriteBack:
             RF[self.rd] = self.loadval
 
 
-# pipelined approach using queue, bypassing, stalling to be implemented to address structural,data and control hazards
 
-# class EE : 
 
-# class Fetch: fetch(), updatePC(), stall()
-# class Decode: extractData(), inputControl(), sendData()
-# class Execute: performOperation()
-# class Memory: read(), write() 
-# class WriteBack: writeToRF()
+def main():
+    # initialize the memory
+    # run a loop through the instructions
+    # Load acc PC
+    # EE.execute()
+    # Timing results
+    # RF,Mem
 
-# class CU: generateControl()
+    # dealing with hazards
+    # Data Hazards: 
+    pass
