@@ -81,9 +81,20 @@ dict_01100_3 = {
     "sra": "101"
 }
 
+dict_11000 = {
+    "beq": '000',
+    "bne": "001",
+    "blt": "100",
+    "bge": "101"
+}
+def get_offset_00000(word):
+    return word.split("(")[0]
+
+def get_r1_00000(word):
+    return word.split("(")[1].replace(")","")
 
 def encode_instruction(instruction):
-    words_list = instruction.splt()
+    words_list = instruction.split()
     first_word = words_list[0]
     if type_dict[first_word] == "01100":
         if first_word in dict_01100_1.keys():
@@ -93,13 +104,36 @@ def encode_instruction(instruction):
         else:
             return "01000" + "00" + register_dict[words_list[3]] + register_dict[words_list[4]] + dict_01100_3[first_word] + register_dict[words_list[2]] + "0110011"
     elif type_dict[first_word] == "11000":
-        pass
+        offset = words_list[3]
+        return offset[0] + offset[2:8] + register_dict(words_list[2]) + register_dict(words_list[1]) + dict_11000[first_word] + offset[8:] + offset[1] + "1100011"
+    elif type_dict[first_word] == "00100":
+        imm = words_list[3]
+        return imm + register_dict(words_list[2]) + "000" + register_dict(words_list[1]) + "0010011"
+    elif type_dict[first_word] == "00000":      #12 bit offset
+        offset = get_offset_00000(words_list[2])
+        r1 = get_r1_00000(words_list[2])
+        return offset + register_dict(r1) + "010" + register_dict[words_list[1]] + "0000011"
+    elif type_dict[first_word] =="01000":       #12 bit offset
+        offset = get_offset_00000(words_list[2])
+        r1 = get_r1_00000(words_list[2])
+        return offset[:7] + register_dict(words_list[1]) + register_dict[r1] + "010" + offset[7:] + "0100011"
+    elif type_dict[first_word] == "11011":       #20 bit offset
+        offset = words_list[2]
+        return offset[0] + offset[10:] + offset[9] + offset[1:9] + register_dict[words_list[1]] + "1101111"
+    elif type_dict[first_word] == "11001":      #12 bit offset
+        offset = words_list[3]
+        return offset + register_dict[words_list[2]] + "000" + register_dict[words_list[1]] + "1100111"
+    elif type_dict[first_word] == "01101":      #32 bit immediate but we only need the upper 20 bits
+        imm = words_list[2]
+        return imm[0:20] + register_dict[words_list[1]] + "0110111"
 #we will go through the code in one iteration and see where the labels are then assign them with their line number 
 label_dict = {
 
 }
+
 def main():
-    pass
+    with open('filename') as f:     #will take the binary and read it
+        lines = f.readlines()
     #print(register_dict)
 
 if __name__ == "__main__":
