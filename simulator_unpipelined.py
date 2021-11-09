@@ -97,11 +97,12 @@ class Mem :
         self.memory = np.full(size,"")
     
     def initialize(self):
+        i = 0
         with open('binary.txt') as b:
-            i = 0
             for line in b:
                 self.memory[i]=line
                 i+=1
+        return i
     
     def getData(self,row):
         return self.memory[row]
@@ -118,9 +119,9 @@ class EE:
         self.instruc = 0
         self.mem = mem
     
-    def execute(self,PC):
+    def execute(self,instruc,PC):
         # fetch
-        self.instruc = self.mem.getData(PC)
+        self.instruc = instruc
         
         # decode
         opcode = self.instruc[25:29]
@@ -232,12 +233,26 @@ class EE:
             self.mem.setData(op1+offset,val)
             PC+=1
 
-PC = 0
+        return PC
+
 def main():
     MEM = Mem()    
     EX = EE(MEM)
+    PC = 0
     halted = False
 
     # initializing memory
-    MEM.initialize()
+    no_of_instructions = MEM.initialize()
+
+    while(not halted):
+        # Fetch instruction from memory
+        instruc = MEM.getData(PC)
+        # execute the instruction
+        PC = EX.execute(instruc,PC)
+        # Check if program execution is finished
+        if(PC>=no_of_instructions): 
+            halted = True
+        print(PC)
+        print(RF)
     
+    MEM.dump()
