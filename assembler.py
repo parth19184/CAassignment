@@ -1,4 +1,4 @@
-from typing import Counter
+from typing import Counter, final
 import numpy as np
 import sys
 
@@ -87,6 +87,12 @@ dict_11000 = {
     "blt": "100",
     "bge": "101"
 }
+def get_binary_20(num):
+    return format(num,'020b')
+
+def get_binary_12(num):
+    return format(num,'012b')
+
 def get_offset_00000(word):
     return word.split("(")[0]
 
@@ -98,25 +104,25 @@ def encode_instruction(instruction):
     first_word = words_list[0]
     if type_dict[first_word] == "01100":
         if first_word in dict_01100_1.keys():
-            return dict_01100_1[first_word] + "00" + register_dict[words_list[3]] + register_dict[words_list[4]] + "000" + register_dict[words_list[2]] + "0110011"
+            return dict_01100_1[first_word] + "00" + register_dict[words_list[2]] + register_dict[words_list[3]] + "000" + register_dict[words_list[2]] + "0110011"
         elif first_word in dict_01100_2.keys():
-            return "00000" + "00" + register_dict[words_list[3]] + register_dict[words_list[4]] + dict_01100_2[first_word] + register_dict[words_list[2]] + "0110011"
+            return "00000" + "00" + register_dict[words_list[2]] + register_dict[words_list[3]] + dict_01100_2[first_word] + register_dict[words_list[1]] + "0110011"
         else:
-            return "01000" + "00" + register_dict[words_list[3]] + register_dict[words_list[4]] + dict_01100_3[first_word] + register_dict[words_list[2]] + "0110011"
+            return "01000" + "00" + register_dict[words_list[2]] + register_dict[words_list[3]] + dict_01100_3[first_word] + register_dict[words_list[1]] + "0110011"
     elif type_dict[first_word] == "11000":
         offset = words_list[3]
-        return offset[0] + offset[2:8] + register_dict(words_list[2]) + register_dict(words_list[1]) + dict_11000[first_word] + offset[8:] + offset[1] + "1100011"
+        return offset[0] + offset[2:8] + register_dict[words_list[2]] + register_dict[words_list[1]] + dict_11000[first_word] + offset[8:] + offset[1] + "1100011"
     elif type_dict[first_word] == "00100":
         imm = words_list[3]
-        return imm + register_dict(words_list[2]) + "000" + register_dict(words_list[1]) + "0010011"
+        return get_binary_12(int(imm)) + register_dict[words_list[2]] + "000" + register_dict[words_list[1]] + "0010011"
     elif type_dict[first_word] == "00000":      #12 bit offset
         offset = get_offset_00000(words_list[2])
         r1 = get_r1_00000(words_list[2])
-        return offset + register_dict(r1) + "010" + register_dict[words_list[1]] + "0000011"
+        return offset + register_dict[r1] + "010" + register_dict[words_list[1]] + "0000011"
     elif type_dict[first_word] =="01000":       #12 bit offset
         offset = get_offset_00000(words_list[2])
         r1 = get_r1_00000(words_list[2])
-        return offset[:7] + register_dict(words_list[1]) + register_dict[r1] + "010" + offset[7:] + "0100011"
+        return offset[:7] + register_dict[words_list[1]] + register_dict[r1] + "010" + offset[7:] + "0100011"
     elif type_dict[first_word] == "11011":       #20 bit offset
         offset = words_list[2]
         return offset[0] + offset[10:] + offset[9] + offset[1:9] + register_dict[words_list[1]] + "1101111"
@@ -130,11 +136,48 @@ def encode_instruction(instruction):
 label_dict = {
 
 }
+def create_string(list1):
+    final_string = ""
+    for i in list1:
+        final_string += i + " "
+    return final_string[:-1]
 
 def main():
-    with open('filename') as f:     #will take the binary and read it
-        lines = f.readlines()
-    #print(register_dict)
+    lines = []
+    with open('assembly.txt') as f:     #will take the binary and read it
+        for line in f:
+            if not line.isspace():
+                line_added = line.replace("\n", "")
+                lines.append(line_added)
+    print(lines)
+
+#firsst iteration for getting branches:
+    keys = type_dict.keys()
+    line_number = 0
+    for instr_line in lines:
+        first_word = instr_line.split()[0]
+        if first_word not in keys:
+            label_dict[first_word[:-1]] = line_number
+            line_number += 1
+        else:
+            line_number += 1
+    
+    #print(label_dict)
+    
+    #creating a set off variable that checks if the program is going towards an infinite loop
+    checker = 0  #will use later
+    #running code starts from here
+    final_binary_list = []
+    total_instruction_length = len(lines)
+    program_counter = 0
+    while(program_counter < total_instruction_length):
+        instruction_line_string = lines[program_counter]
+        if program_counter in label_dict.values():
+            list1 = instruction_line_string.split()[1:]
+            instruction_line_string = create_string(list1)
+        final_binary_list.append(encode_instruction(instruction_line_string))
+        print(final_binary_list)
+        program_counter += 1
 
 if __name__ == "__main__":
     main()
