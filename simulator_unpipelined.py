@@ -200,7 +200,7 @@ class EE:
         # conditional branches
         elif(opcode == "11000"):
             offset = self.instruc[0]+self.instruc[24]+self.instruc[1:7]+self.instruc[20:24]
-            offset = int(self.offset,2)
+            offset = int(offset,2)
             op1 = RF[rs1]
             op2 = RF[rs2]
             funct3 = self.instruc[17:20]
