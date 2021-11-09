@@ -107,7 +107,7 @@ class Mem :
                 i+=1
         ctr = i
         while(ctr<=self.size):
-            self.memory.append("")
+            self.memory.append("0")
             ctr+=1
         return i
     
@@ -195,7 +195,9 @@ class EE:
             offset = int(self.instruc[0:12],2)
             op1 = RF[rs1]
             RF[rd] = PC+1            
-            PC+=(op1+offset)&(0)
+            PC=(op1+offset)
+            PC = '{:032b}'.format(PC)[0:31] + '0'
+            PC = int(PC,2)
         
         # conditional branches
         elif(opcode == "11000"):
@@ -208,22 +210,26 @@ class EE:
             if(funct3=="000"):
                 # BEQ
                 if(RF[rs1]==RF[rs2]):
-                    PC+=offset
+                    PC=offset
+                else: PC+=1
 
             elif(funct3=="001"):
                 # BNE
                 if(RF[rs1]!=RF[rs2]):
-                    PC+=offset
+                    PC=offset
+                else: PC+=1
 
             elif(funct3=="100"):
                 # BLT
                 if(RF[rs1]<RF[rs2]):
-                    PC+=offset
+                    PC=offset
+                else: PC+=1
 
             elif(funct3=="101"):
                 # BGE
                 if(RF[rs1]>=RF[rs2]):
-                    PC+=offset
+                    PC=offset
+                else: PC+=1
         # load
         elif(opcode=="00000"):
             offset = int(self.instruc[0:12],2)
