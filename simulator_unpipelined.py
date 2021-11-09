@@ -1,5 +1,6 @@
 from typing import List
 import numpy as np
+import time
         
 register_dict = {
     "00000":'R0',
@@ -245,14 +246,25 @@ def main():
     no_of_instructions = MEM.initialize()
 
     while(not halted):
+        # start timer
+        tic = time.perf_counter_ns()
         # Fetch instruction from memory
         instruc = MEM.getData(PC)
         # execute the instruction
         PC = EX.execute(instruc,PC)
+        # stop the timer
+        toc = time.perf_counter_ns()
         # Check if program execution is finished
         if(PC>=no_of_instructions): 
             halted = True
         print(PC)
-        print(RF)
+        # printing the register file
+        print(RF)   
+        # printing the time taken (in ns) to process the instruction
+        print(f"Instruction Execution completed in {toc-tic:0.4f} nanoseconds")
     
+    # priniting the memory state at the end of the execution
     MEM.dump()
+
+if __name__ == "__main__":
+    main()
