@@ -95,14 +95,20 @@ class Mem :
         self.bits = 32
         self.size = size
         self.access_time = access_time
-        self.memory = np.full(size,"")
+        self.memory = []
     
     def initialize(self):
         i = 0
-        with open('binary.txt') as b:
-            for line in b:
-                self.memory[i]=line
+        with open('sample_binary.txt') as b:
+            lines = b.readlines()
+            # print(lines)
+            for line in lines:
+                self.memory.append(line)
                 i+=1
+        ctr = i
+        while(ctr<=self.size):
+            self.memory.append("0")
+            ctr+=1
         return i
     
     def getData(self,row):
@@ -125,7 +131,7 @@ class EE:
         self.instruc = instruc
         
         # decode
-        opcode = self.instruc[25:29]
+        opcode = self.instruc[25:30]
         rs2 = register_dict[self.instruc[7:12]]
         rs1 = register_dict[self.instruc[12:17]]
         rd = register_dict[self.instruc[20:25]]
@@ -163,14 +169,14 @@ class EE:
             PC+=1
         
         # add immediate
-        if(opcode=="00100"):
+        elif(opcode=="00100"):
             op1 = RF[rs1]
             imm = int(self.instruc[0:12],2)
             RF[rd] = op1 + imm
             PC+=1
 
         # load upper immediate
-        if(opcode=="01101"):
+        elif(opcode=="01101"):
             imm = self.instruc[0:20]
             imm+="000000000000"
             RF[rd] = int(imm,2)
@@ -178,23 +184,25 @@ class EE:
 
         # branches
         # unconditional branches
-        if(opcode == "11011"):
+        elif(opcode == "11011"):
             # jal
             offset = self.instruc[0]+self.instruc[12:20]+self.instruc[11]+self.instruc[1:11]
             offset = int(offset,2)
             RF[rd] = PC+1
             PC+=offset
-        if(opcode == "11001"):
+        elif(opcode == "11001"):
             # jalr
             offset = int(self.instruc[0:12],2)
             op1 = RF[rs1]
             RF[rd] = PC+1            
-            PC+=(op1+offset)&(0)
+            PC=(op1+offset)
+            PC = '{:032b}'.format(PC)[0:31] + '0'
+            PC = int(PC,2)
         
         # conditional branches
-        if(opcode == "11000"):
+        elif(opcode == "11000"):
             offset = self.instruc[0]+self.instruc[24]+self.instruc[1:7]+self.instruc[20:24]
-            offset = int(self.offset,2)
+            offset = int(offset,2)
             op1 = RF[rs1]
             op2 = RF[rs2]
             funct3 = self.instruc[17:20]
@@ -202,37 +210,42 @@ class EE:
             if(funct3=="000"):
                 # BEQ
                 if(RF[rs1]==RF[rs2]):
-                    PC+=offset
+                    PC=offset
+                else: PC+=1
 
             elif(funct3=="001"):
                 # BNE
                 if(RF[rs1]!=RF[rs2]):
-                    PC+=offset
+                    PC=offset
+                else: PC+=1
 
             elif(funct3=="100"):
                 # BLT
                 if(RF[rs1]<RF[rs2]):
-                    PC+=offset
+                    PC=offset
+                else: PC+=1
 
             elif(funct3=="101"):
                 # BGE
                 if(RF[rs1]>=RF[rs2]):
-                    PC+=offset
+                    PC=offset
+                else: PC+=1
         # load
-        if(opcode=="00000"):
+        elif(opcode=="00000"):
             offset = int(self.instruc[0:12],2)
             op1 = RF[rs1]
             RF[rd] = int(self.mem.getData(op1+offset),2)
             PC+=1
         
         # store
-        if(opcode=="01000"):
+        elif(opcode=="01000"):
             offset = int(self.instruc[0:7]+self.instruc[20:25],2)
             op1 = RF[rs1]
             op2 = RF[rs2]
             val = '{:032b}'.format(op2)
             self.mem.setData(op1+offset,val)
             PC+=1
+        else: PC+=1
 
         return PC
 
@@ -244,6 +257,7 @@ def main():
 
     # initializing memory
     no_of_instructions = MEM.initialize()
+    MEM.dump()
 
     while(not halted):
         # start timer
@@ -263,7 +277,7 @@ def main():
         # printing the time taken (in ns) to process the instruction
         print(f"Instruction Execution completed in {toc-tic:0.4f} nanoseconds")
     
-    # priniting the memory state at the end of the execution
+    # printing the memory state at the end of the execution
     MEM.dump()
 
 if __name__ == "__main__":
