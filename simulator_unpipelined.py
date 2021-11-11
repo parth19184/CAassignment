@@ -99,7 +99,7 @@ class Mem :
     
     def initialize(self):
         i = 0
-        with open('sample_binary.txt') as b:
+        with open('abcd4.txt') as b:
             lines = b.readlines()
             # print(lines)
             for line in lines:

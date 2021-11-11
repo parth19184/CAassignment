@@ -32,5 +32,6 @@ jalr R28 R0 30
 addi R30 R30 30
 addi R6 R13 69
 addi R0 R0 1 
-lw R19 0(R22)
-sw R27 8(R28)
+lw R19 0(R21)
+sw R22 8(R28)
+lw R2 8(R28)
