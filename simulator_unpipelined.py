@@ -99,7 +99,7 @@ class Mem :
     
     def initialize(self):
         i = 0
-        with open('sample_binary.txt') as b:
+        with open('abcd2.txt') as b:
             lines = b.readlines()
             # print(lines)
             for line in lines:
@@ -258,7 +258,7 @@ def main():
     # initializing memory
     no_of_instructions = MEM.initialize()
     MEM.dump()
-
+    cycles = 0
     while(not halted):
         # start timer
         tic = time.perf_counter_ns()
@@ -275,8 +275,9 @@ def main():
         # printing the register file
         print(RF)   
         # printing the time taken (in ns) to process the instruction
+        cycles += 1
         print(f"Instruction Execution completed in {toc-tic:0.4f} nanoseconds")
-    
+    print("total cycles",cycles)
     # printing the memory state at the end of the execution
     MEM.dump()
 
