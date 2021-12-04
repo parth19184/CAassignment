@@ -189,7 +189,7 @@ def main():
         final_binary_list.append(encode_instruction(instruction_line_string))
         #print(final_binary_list)
         program_counter += 1
-    write_file("abcd4.txt", final_binary_list)
+    write_file("binary5.txt", final_binary_list)
     print(label_dict)
 if __name__ == "__main__":
     main()
