@@ -113,6 +113,13 @@ class L1Cache :
             self.cache.append(Queue(maxsize = self.assoc))
             self.dirty_bits(l)
 
+    def getInfo(self,addr):
+        offset = int(addr[0:2],2)
+        index = int(addr[2:6],2)
+        tag = int(addr[6:32])
+
+        return (tag,index,offset)
+
 class Mem : 
     def __init__(self, size = 1024, access_time = 2):
         self.bits = 32
