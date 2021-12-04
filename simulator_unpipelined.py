@@ -1,5 +1,6 @@
 from typing import List
 import numpy as np
+from queue import Queue
 import time
         
 register_dict = {
@@ -90,8 +91,30 @@ RF = {
     'R31':0
 }
 
+class L1Cache :
+    def __init__(self,size = 64, miss_penalty = 3, hit_time = 1, block_size = 4, assoc = 4):
+        self.size = size                # no. of cache lines
+        self.miss_penalty = miss_penalty
+        self.hit_time = hit_time
+        self.block_size = block_size    # addressable locations (4-byte-addressable) in a cache line
+        self.assoc = assoc              # <assoc>-way assoctivity 
+        self.sets = size/assoc
+        self.cache = []                 # list of queues to implement FIFO replacement policy
+        self.dirty_bits = []            # write-back write strategy
+        # self.MRU = []
+
+    # initializing the cache and affiliated structures
+    def initialize(self):
+        l = []
+        for i in range(self.assoc):
+            l.append(0)
+
+        for i in range(self.sets):
+            self.cache.append(Queue(maxsize = self.assoc))
+            self.dirty_bits(l)
+
 class Mem : 
-    def __init__(self, size = 256, access_time = 1):
+    def __init__(self, size = 1024, access_time = 2):
         self.bits = 32
         self.size = size
         self.access_time = access_time
