@@ -99,6 +99,7 @@ class L1Cache :
         self.block_size = block_size    # addressable locations (4-byte-addressable) in a cache line
         self.assoc = assoc              # <assoc>-way assoctivity 
         self.sets = size/assoc
+        self.addresses = []             # keeps a list of references of all entries in the cache 
         self.cache = []                 # list of queues to implement FIFO replacement policy
         self.dirty_bits = []            # write-back write strategy
         # self.MRU = []
@@ -106,28 +107,28 @@ class L1Cache :
     # initializing the cache and affiliated structures
     def initialize(self):
         l = []
-        for i in range(self.assoc):
+        for  i in range(self.block_size):
             l.append(0)
-
-        for i in range(self.sets):
-            self.cache.append(Queue(maxsize = self.assoc))
-            self.dirty_bits(l)
+        for i in range(self.size):
+            self.addresses.append('0')
+            self.cache.append(l)
+            self.dirty_bits.append(0)
 
     def getInfo(self,addr):
         offset = int(addr[0:2],2)
         index = int(addr[2:6],2)
-        tag = int(addr[6:32],2)
+        tag = int(addr[6:12],2)
 
         return (tag,index,offset)
 
     def searchForBlock(self,addr):
         pass
     
-    def read(self):
+    def read(self,addr):
         # for loads
-        pass
+        self.searchForBlock(addr)
 
-    def write(self):
+    def write(self,addr,val):
         # for stores
         pass
 
