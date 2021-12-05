@@ -116,9 +116,35 @@ class L1Cache :
     def getInfo(self,addr):
         offset = int(addr[0:2],2)
         index = int(addr[2:6],2)
-        tag = int(addr[6:32])
+        tag = int(addr[6:32],2)
 
         return (tag,index,offset)
+
+    def searchForBlock(self,addr):
+        pass
+    
+    def read(self):
+        # for loads
+        pass
+
+    def write(self):
+        # for stores
+        pass
+
+    def fetchFromMemory(self,addr):
+        pass
+    
+    def replace(self,addr):
+        # FIFO replacement policy
+        pass
+    
+    def writeBack(self):
+        # following the write-back policy
+        pass
+
+    def writeAllocate(self):
+        # following write-allocate policy
+        pass
 
 class Mem : 
     def __init__(self, size = 1024, access_time = 2):
