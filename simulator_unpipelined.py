@@ -92,7 +92,7 @@ RF = {
 }
 
 class L1Cache :
-    def __init__(self,size = 64, miss_penalty = 3, hit_time = 1, block_size = 4, assoc = 4):
+    def __init__(self, mem, size = 64, miss_penalty = 3, hit_time = 1, block_size = 4, assoc = 4,):
         self.size = size                # no. of cache lines
         self.miss_penalty = miss_penalty
         self.hit_time = hit_time
@@ -100,10 +100,11 @@ class L1Cache :
         self.assoc = assoc              # <assoc>-way assoctivity 
         self.sets = size/assoc
         self.addresses = []                                     # keeps a list of references of all entries in the cache 
-        self.cache = np.zeros((self.size,self.block_size))                                        # list of all the data values mapped to the address
-        self.LRU = np.zeros((self.sets,self.assoc))               # structure to implement the LRU policy
+        self.cache = np.zeros((self.size,self.block_size))      # list of all the data values mapped to the address
+        self.LRU = np.zeros((self.sets,self.assoc))             # structure to implement the LRU policy
         self.dirty_bits = []                                    # write-back write strategy
-        self.counter = np.zeros((self.sets,1))
+        self.counter = np.zeros((self.sets,1))                  # to maintain count of the blocks in each set
+        self.mem = mem                                          # memory object
 
     # initializing the cache and affiliated structures
     def initialize(self):
@@ -118,8 +119,27 @@ class L1Cache :
 
         return (tag,index,offset)
     
-    def searchForBlock(self,tag,index,offset):
-        pass
+    def searchForBlock(self,addr):
+        (tag,index,offset) = self.getInfo(addr)
+        start = index*self.assoc
+        end = start + self.assoc
+        
+        while(start!=end and self.addresses[start]!='0'):
+            # if block is found
+            if self.addresses[6:12] == tag:
+                return (self.hit_time, start,offset)
+        
+        # if block is not found
+        # fetch from memory
+        block = self.fetchFromMemory(addr,offset)
+        # set has one or more empty spaces
+        if(start!=end): 
+            self.addresses[start] = addr
+            self.cache[start] = block
+        
+        # set is full -> block has to be replaced using LRU
+        else:
+            pass
         
     def read(self,addr):
         # for load
@@ -129,16 +149,29 @@ class L1Cache :
         # for stores
         pass
 
-    def fetchFromMemory(self,addr):
-        pass
+    def fetchFromMemory(self,addr,offset):
+        loc = int(addr,2)
+        block = []
+        for i in range(self.block_size):
+            block.append(self.mem.getData(loc-offset+i))
+        return np.array(block)
     
-    def replace(self,addr):
+    def replace(self,index,offset):
         # LRU replacement policy
+        det = np.argmin(self.counter[index])    # location of the block to be replaced
+        det = index*self.assoc + det
+        self.writeBack(det,offset)                        # write-back policy
+        ad = self.addresses[det]
+        self.cache[det] = np.zeros((1,self.block_size))
         pass
     
-    def writeBack(self):
+    def writeBack(self,det,offset):
         # following the write-back policy
-        pass
+        ad = int(self.addresses[det],2)
+        if(self.dirty_bits[det]==1):
+            # write the values back to the memory
+            for i in range(self.block_size):
+                self.mem.setData(ad-offset+i,'{:032b}'.format(self.cache[det][i]))
 
     def writeAllocate(self):
         # following write-allocate policy
