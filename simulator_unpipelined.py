@@ -99,19 +99,16 @@ class L1Cache :
         self.block_size = block_size    # addressable locations (4-byte-addressable) in a cache line
         self.assoc = assoc              # <assoc>-way assoctivity 
         self.sets = size/assoc
-        self.addresses = []             # keeps a list of references of all entries in the cache 
-        self.cache = []                 # list of queues to implement FIFO replacement policy
-        self.dirty_bits = []            # write-back write strategy
-        # self.MRU = []
+        self.addresses = []                                     # keeps a list of references of all entries in the cache 
+        self.cache = np.zeros((self.size,self.block_size))                                        # list of all the data values mapped to the address
+        self.LRU = np.zeros((self.sets,self.assoc))               # structure to implement the LRU policy
+        self.dirty_bits = []                                    # write-back write strategy
+        self.counter = np.zeros((self.sets,1))
 
     # initializing the cache and affiliated structures
     def initialize(self):
-        l = []
-        for  i in range(self.block_size):
-            l.append(0)
         for i in range(self.size):
             self.addresses.append('0')
-            self.cache.append(l)
             self.dirty_bits.append(0)
 
     def getInfo(self,addr):
@@ -120,13 +117,13 @@ class L1Cache :
         tag = int(addr[6:12],2)
 
         return (tag,index,offset)
-
-    def searchForBlock(self,addr):
-        pass
     
+    def searchForBlock(self,tag,index,offset):
+        pass
+        
     def read(self,addr):
-        # for loads
-        self.searchForBlock(addr)
+        # for load
+        pass
 
     def write(self,addr,val):
         # for stores
@@ -136,7 +133,7 @@ class L1Cache :
         pass
     
     def replace(self,addr):
-        # FIFO replacement policy
+        # LRU replacement policy
         pass
     
     def writeBack(self):
