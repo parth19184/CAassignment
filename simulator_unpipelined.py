@@ -92,7 +92,7 @@ RF = {
 }
 
 class L1Cache :
-    def __init__(self, mem, size = 64, miss_penalty = 2, hit_time = 1, block_size = 4, assoc = 4,):
+    def __init__(self, mem, size = 64, miss_penalty = 2, hit_time = 1, block_size = 4, assoc = 4):
         self.size = size                # no. of cache lines
         self.miss_penalty = miss_penalty
         self.hit_time = hit_time
@@ -121,7 +121,7 @@ class L1Cache :
     
     def searchForBlock(self,addr):
         (tag,index,offset) = self.getInfo(addr)
-        start = index*self.assoc
+        start = index*self.assoc 
         end = start + self.assoc
         
         while(start!=end and self.addresses[start]!='0'):
