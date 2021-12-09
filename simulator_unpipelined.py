@@ -92,7 +92,7 @@ RF = {
 }
 
 class L1Cache :
-    def __init__(self, mem, size = 64, miss_penalty = 3, hit_time = 1, block_size = 4, assoc = 4,):
+    def __init__(self, mem, size = 64, miss_penalty = 2, hit_time = 1, block_size = 4, assoc = 4,):
         self.size = size                # no. of cache lines
         self.miss_penalty = miss_penalty
         self.hit_time = hit_time
@@ -139,7 +139,12 @@ class L1Cache :
         
         # set is full -> block has to be replaced using LRU
         else:
-            pass
+            ins = self.replace(index,offset)    # location where the block is to be placed after the one in that place was written back
+            self.addresses[ins] = addr
+            self.cache[ins] = block
+            start = ins
+        
+        return (self.hit_time + self.miss_penalty, start, offset)
         
     def read(self,addr):
         # for load
@@ -158,12 +163,10 @@ class L1Cache :
     
     def replace(self,index,offset):
         # LRU replacement policy
-        det = np.argmin(self.counter[index])    # location of the block to be replaced
+        det = np.argmin(self.LRU[index])    # location of the block to be replaced
         det = index*self.assoc + det
         self.writeBack(det,offset)                        # write-back policy
-        ad = self.addresses[det]
-        self.cache[det] = np.zeros((1,self.block_size))
-        pass
+        return det
     
     def writeBack(self,det,offset):
         # following the write-back policy
