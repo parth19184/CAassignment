@@ -126,8 +126,9 @@ class L1Cache :
         
         while(start!=end and self.addresses[start]!='0'):
             # if block is found
-            if self.addresses[6:12] == tag:
+            if self.addresses[start][6:12] == tag:
                 return (self.hit_time, start,offset)
+            start+=1
         
         # if block is not found
         # fetch from memory
