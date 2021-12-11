@@ -148,11 +148,15 @@ class L1Cache :
         
     def read(self,addr):
         # for load
-        pass
+        (latency,block,offset) = self.searchForBlock(addr)
+        return (self.cache[block][offset],latency)
 
     def write(self,addr,val):
         # for stores
-        pass
+        (latency,block,offset) = self.searchForBlock(addr)
+        self.cache[block][offset] = val
+        self.dirty_bits[block] = 1
+        return latency
 
     def fetchFromMemory(self,addr,offset):
         loc = int(addr,2)
@@ -176,9 +180,9 @@ class L1Cache :
             for i in range(self.block_size):
                 self.mem.setData(ad-offset+i,'{:032b}'.format(self.cache[det][i]))
 
-    def writeAllocate(self):
-        # following write-allocate policy
-        pass
+    # def writeAllocate(self):
+    #     # following write-allocate policy
+    #     pass
 
 class Mem : 
     def __init__(self, size = 1024, access_time = 2):
