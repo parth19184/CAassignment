@@ -119,6 +119,12 @@ class L1Cache :
 
         return (tag,index,offset)
     
+    def updateLRU(self,index,block):
+        self.LRU[index][0:0+self.counter[index]] = self.LRU[index][0:0+self.counter[index]] - 1
+        update = block - index*self.assoc
+        self.LRU[index][update] = 0
+        
+
     def searchForBlock(self,addr):
         (tag,index,offset) = self.getInfo(addr)
         start = index*self.assoc 
@@ -127,6 +133,7 @@ class L1Cache :
         while(start!=end and self.addresses[start]!='0'):
             # if block is found
             if self.addresses[start][6:12] == tag:
+                self.updateLRU(index,start)
                 return (self.hit_time, start,offset)
             start+=1
         
@@ -137,6 +144,7 @@ class L1Cache :
         if(start!=end): 
             self.addresses[start] = addr
             self.cache[start] = block
+            self.counter[index]+=1
         
         # set is full -> block has to be replaced using LRU
         else:
@@ -145,6 +153,7 @@ class L1Cache :
             self.cache[ins] = block
             start = ins
         
+        self.updateLRU(index,start)
         return (self.hit_time + self.miss_penalty, start, offset)
         
     def read(self,addr):
@@ -163,7 +172,7 @@ class L1Cache :
         loc = int(addr,2)
         block = []
         for i in range(self.block_size):
-            block.append(self.mem.getData(loc-offset+i))
+            block.append(int(self.mem.getData(loc-offset+i),2))
         return np.array(block)
     
     def replace(self,index,offset):
@@ -217,9 +226,10 @@ class Mem :
 
 
 class EE:
-    def __init__(self,mem):
+    def __init__(self,mem,L1):
         self.instruc = 0
         self.mem = mem
+        self.L1 = L1
     
     def execute(self,instruc,PC):
         # fetch
@@ -231,6 +241,7 @@ class EE:
         rs1 = register_dict[self.instruc[12:17]]
         rd = register_dict[self.instruc[20:25]]
 
+        lat = 1             #set default latency to one cycle
         # arithmetic instructions
         if(opcode=="01100"):
             # add,sub,or,and,xor,sll,sra
@@ -329,7 +340,8 @@ class EE:
         elif(opcode=="00000"):
             offset = int(self.instruc[0:12],2)
             op1 = RF[rs1]
-            RF[rd] = int(self.mem.getData(op1+offset),2)
+            loc = '{:032b}'.format(op1+offset)
+            RF[rd],lat = self.L1.read(loc)
             PC+=1
         
         # store
@@ -337,16 +349,18 @@ class EE:
             offset = int(self.instruc[0:7]+self.instruc[20:25],2)
             op1 = RF[rs1]
             op2 = RF[rs2]
-            val = '{:032b}'.format(op2)
-            self.mem.setData(op1+offset,val)
+            # val = '{:032b}'.format(op2)
+            loc = '{:032b}'.format(op1+offset)
+            lat = self.L1.write(loc,op2)
             PC+=1
         else: PC+=1
 
-        return PC
+        return (PC,lat)
 
 def main():
     MEM = Mem()    
-    EX = EE(MEM)
+    CACHE = L1Cache(MEM)
+    EX = EE(MEM,CACHE)
     PC = 0
     halted = False
 
@@ -357,10 +371,13 @@ def main():
     while(not halted):
         # start timer
         tic = time.perf_counter_ns()
-        # Fetch instruction from memory
-        instruc = MEM.getData(PC)
+        # Fetch instruction from cache
+        instruc,cyc = CACHE.read('{:032b}'.format(PC))
+        instruc = '{:032b}'.format(instruc)
+        cycles+=cyc
         # execute the instruction
-        PC = EX.execute(instruc,PC)
+        PC,cyc = EX.execute(instruc,PC)
+        cycles+=cyc
         # stop the timer
         toc = time.perf_counter_ns()
         # Check if program execution is finished
@@ -370,7 +387,6 @@ def main():
         # printing the register file
         print(RF)   
         # printing the time taken (in ns) to process the instruction
-        cycles += 1
         print(f"Instruction Execution completed in {toc-tic:0.4f} nanoseconds")
     print("total cycles",cycles)
     # printing the memory state at the end of the execution
