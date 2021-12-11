@@ -93,11 +93,11 @@ RF = {
 
 class L1Cache :
     def __init__(self, mem, size = 64, miss_penalty = 2, hit_time = 1, block_size = 4, assoc = 4):
-        self.size = size                # no. of cache lines
+        self.size = size                                        # no. of cache lines
         self.miss_penalty = miss_penalty
         self.hit_time = hit_time
-        self.block_size = block_size    # addressable locations (4-byte-addressable) in a cache line
-        self.assoc = assoc              # <assoc>-way assoctivity 
+        self.block_size = block_size                            # addressable locations (4-byte-addressable) in a cache line
+        self.assoc = assoc                                      # <assoc>-way assoctivity 
         self.sets = size/assoc
         self.addresses = []                                     # keeps a list of references of all entries in the cache 
         self.cache = np.zeros((self.size,self.block_size))      # list of all the data values mapped to the address
@@ -113,9 +113,9 @@ class L1Cache :
             self.dirty_bits.append(0)
 
     def getInfo(self,addr):
-        offset = int(addr[0:2],2)
-        index = int(addr[2:6],2)
-        tag = int(addr[6:12],2)
+        offset = int(addr[0:2],2)   # 2-bit offset
+        index = int(addr[2:6],2)    # 4-bit index
+        tag = int(addr[6:12],2)     # 26-bit tag
 
         return (tag,index,offset)
     
