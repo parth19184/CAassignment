@@ -98,12 +98,7 @@ RF = {
 class L1Cache :
     def __init__(self, mem, size = 64, miss_penalty = 2, hit_time = 1, block_size = 4, assoc = 4, write_pol = 0,replacement_pol = 0):
         self.size = size                                        # no. of cache lines
-        
-        if(write_pol==0):
-            self.miss_penalty = miss_penalty
-        else:
-            self.miss_penalty = miss_penalty+1                  # write-through incurs extra cost 
-
+        self.miss_penalty = miss_penalty 
         self.hit_time = hit_time
         self.block_size = block_size                            # addressable locations (4-byte-addressable) in a cache line
         self.assoc = assoc                                      # <assoc>-way assoctivity 
