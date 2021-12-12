@@ -118,6 +118,10 @@ class L1Cache :
         self.counter = []                                       # to maintain count of the blocks in each set
         self.mem = mem                                          # memory object
 
+        self.index_bits = int(math.log2(self.sets))
+        self.offset_bits = int(math.log2(self.block_size))
+        self.tag_bits = 32 - self.index_bits - self.offset_bits
+
     # initializing the cache and affiliated structures
     def initialize(self):
         for i in range(self.size):
@@ -130,13 +134,10 @@ class L1Cache :
         print(self.cache)
 
     def getInfo(self,addr):
-        index_bits = int(math.log2(self.sets))
-        offset_bits = int(math.log2(self.block_size))
-        tag_bits = 32 - index_bits - offset_bits
         
-        offset = int(addr[tag_bits+index_bits:32],2)   
-        index = int(addr[tag_bits:tag_bits+index_bits],2)    
-        tag = int(addr[0:tag_bits],2)     
+        offset = int(addr[self.tag_bits+self.index_bits:32],2)   
+        index = int(addr[self.tag_bits:self.tag_bits+self.index_bits],2)    
+        tag = int(addr[0:self.tag_bits],2)     
 
         print("tag =" + str(tag))
         print("index =" + str(index))
@@ -148,21 +149,24 @@ class L1Cache :
         update = block - index*self.assoc
         self.LRU[index][update] = 0
 
-    def updateFIFO(self,index,block):
+    def updateFIFO(self,index,block,new):
         self.FIFO[index][0:0+self.counter[index]] = self.FIFO[index][0:0+self.counter[index]] + 1 
         update = block - index*self.assoc
-        self.FIFO[index][update] = 1
+        if(new):
+            self.FIFO[index][update] = 1
 
     def searchForBlock(self,addr):
         (tag,index,offset) = self.getInfo(addr)
+        lat = 0
         start = index*self.assoc
         # print(start) 
         end = start + self.assoc
         # print(end)
         while(start!=end and self.addresses[start]!="0"):
             # if block is found
-            if int(self.addresses[start][0:26]) == tag:
+            if int(self.addresses[start][0:self.tag_bits]) == tag:
                 self.updateLRU(index,start)
+                self.updateFIFO(index,start,False)
                 return (self.hit_time, start,offset)
             start+=1
         
@@ -177,15 +181,15 @@ class L1Cache :
         
         # set is full -> block has to be replaced using LRU
         else:
-            ins = self.replace(index,offset)    # location where the block is to be placed after the one in that place was written back
+            (ins,lat) = self.replace(index,offset)    # location where the block is to be placed after the one in that place was written back
             self.addresses[ins] = addr
             self.cache[ins] = block
             start = ins
         
         self.updateLRU(index,start)
-        self.updateFIFO(index,start)
+        self.updateFIFO(index,start,True)
 
-        return (self.hit_time + self.miss_penalty, start, offset)
+        return (self.hit_time + self.miss_penalty + lat, start, offset)
         
     def read(self,addr):
         # for load
@@ -196,8 +200,11 @@ class L1Cache :
         # for stores
         (latency,block,offset) = self.searchForBlock(addr)
         self.cache[block][offset] = val
+        
         if(self.write_policy == 1):
             self.writeThrough(addr,val)     # write through
+            latency+=1
+
         self.dirty_bits[block] = 1
         return latency
 
@@ -209,7 +216,7 @@ class L1Cache :
         return np.array(block)
     
     def replace(self,index,offset):
-        # LRU replacement policy
+        lat = 0
         if(self.replacement_pol == 0):
             det = np.argmin(self.LRU[index])    # LRU replacement
         elif(self.replacement_pol == 1):        
@@ -220,9 +227,9 @@ class L1Cache :
         det = index*self.assoc + det
         
         if(self.write_policy==0):
-            self.writeBack(det,offset)                        # write-back policy
+            lat = self.writeBack(det,offset)                        # write-back policy
         
-        return det
+        return (det,lat)
     
     def writeBack(self,det,offset):
         # following the write-back policy
@@ -231,7 +238,9 @@ class L1Cache :
             # write the values back to the memory
             for i in range(self.block_size):
                 self.mem.setData(ad-offset+i,'{:032b}'.format(int(self.cache[det][i])))
-
+            return 1
+        return 0
+    
     def writeThrough(self,addr,val):
         self.mem.setData(int(addr,2),'{:032b}'.format(int(val)))
 
@@ -245,7 +254,7 @@ class Mem :
     
     def initialize(self):
         i = 0
-        with open('binary3.txt') as b:
+        with open('binary6.txt') as b:
             lines = b.readlines()
             # print(lines)
             for line in lines:
@@ -401,7 +410,7 @@ class EE:
 
 def main():
     MEM = Mem()    
-    CACHE = L1Cache(MEM,write_pol=1,replacement_pol=1)
+    CACHE = L1Cache(MEM)
     EX = EE(MEM,CACHE)
     PC = 0
     halted = False
@@ -429,11 +438,11 @@ def main():
         print(PC)
         # printing the register file
         print(RF)   
-        print(MEM.memory[126])
         # printing the time taken (in ns) to process the instruction
         print(f"Instruction Execution completed in {toc-tic:0.4f} nanoseconds")
     print("total cycles",cycles)
     # printing the memory state at the end of the execution
+    CACHE.dump()
     MEM.dump()
 
 if __name__ == "__main__":
