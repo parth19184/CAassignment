@@ -103,20 +103,25 @@ class L1Cache :
         self.cache = np.zeros((self.size,self.block_size))      # list of all the data values mapped to the address
         self.LRU = np.zeros((self.sets,self.assoc))             # structure to implement the LRU policy
         self.dirty_bits = []                                    # write-back write strategy
-        self.counter = np.zeros((self.sets,1))                  # to maintain count of the blocks in each set
+        self.counter = []                # to maintain count of the blocks in each set
         self.mem = mem                                          # memory object
 
     # initializing the cache and affiliated structures
     def initialize(self):
         for i in range(self.size):
-            self.addresses.append('0')
+            self.addresses.append("0")
             self.dirty_bits.append(0)
+        for i in range(self.sets):
+            self.counter.append(0)
 
     def getInfo(self,addr):
-        offset = int(addr[0:2],2)   # 2-bit offset
-        index = int(addr[2:6],2)    # 4-bit index
-        tag = int(addr[6:12],2)     # 26-bit tag
+        offset = int(addr[30:32],2)   # 2-bit offset
+        index = int(addr[26:30],2)    # 4-bit index
+        tag = int(addr[0:26],2)     # 26-bit tag
 
+        print("tag =" + str(tag))
+        print("index =" + str(index))
+        print("offset =" + str(offset))
         return (tag,index,offset)
     
     def updateLRU(self,index,block):
@@ -127,12 +132,13 @@ class L1Cache :
 
     def searchForBlock(self,addr):
         (tag,index,offset) = self.getInfo(addr)
-        start = index*self.assoc 
+        start = index*self.assoc
+        # print(start) 
         end = start + self.assoc
-        
-        while(start!=end and self.addresses[start]!='0'):
+        # print(end)
+        while(start!=end and self.addresses[start]!="0"):
             # if block is found
-            if self.addresses[start][6:12] == tag:
+            if int(self.addresses[start][0:26]) == tag:
                 self.updateLRU(index,start)
                 return (self.hit_time, start,offset)
             start+=1
@@ -203,7 +209,7 @@ class Mem :
     
     def initialize(self):
         i = 0
-        with open('binary5.txt') as b:
+        with open('binary.txt') as b:
             lines = b.readlines()
             # print(lines)
             for line in lines:
@@ -366,6 +372,7 @@ def main():
 
     # initializing memory
     no_of_instructions = MEM.initialize()
+    CACHE.initialize()
     MEM.dump()
     cycles = 0
     while(not halted):
@@ -373,7 +380,7 @@ def main():
         tic = time.perf_counter_ns()
         # Fetch instruction from cache
         instruc,cyc = CACHE.read('{:032b}'.format(PC))
-        instruc = '{:032b}'.format(instruc)
+        instruc = '{:032b}'.format(int(instruc))
         cycles+=cyc
         # execute the instruction
         PC,cyc = EX.execute(instruc,PC)
