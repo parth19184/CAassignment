@@ -1,0 +1,44 @@
+addi R0 R0 5
+addi R31 R14 9
+and R4 R0 R31
+xor R11 R31 R0
+add R7 R4 R31
+addi R1 R1 6
+sub R11 R11 R1
+sub R5 R11 R0
+beq R4 R5 br1
+addi R5 R5 1
+br1: or R17 R31 R11
+lui R27 1
+bne R4 R5 br1
+addi R20 R20 9
+addi R21 R21 2
+sll R22 R20 R21
+sra R23 R7 R21
+jal R30 2
+sub R1 R2 R3 
+add R18 R4 R11
+sub R12 R7 R4
+bne R18 R12 br2
+addi R24 R24 16
+br2: or R25 R21 R23
+addi R18 R18 1
+blt R18 R12 br2 
+bge R18 R12 br3
+and R16 R7 R31
+or R19 R7 R31
+br3: xor R26 R11 R17
+jalr R28 R0 30
+addi R30 R30 30
+addi R6 R13 69
+addi R0 R0 1 
+lw R19 0(R22)
+sw R27 18(R28)
+addi R2 R3 64
+addi R14 R3 62
+lw R20 62(R2)
+sw R7 126(R2)
+sw R14 62(R2)
+lw R20 192(R14)
+sw R29 256(R14)
+lw R22 382(R3)
