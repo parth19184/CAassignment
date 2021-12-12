@@ -98,7 +98,7 @@ class L1Cache :
         self.hit_time = hit_time
         self.block_size = block_size                            # addressable locations (4-byte-addressable) in a cache line
         self.assoc = assoc                                      # <assoc>-way assoctivity 
-        self.sets = size/assoc
+        self.sets = size//assoc
         self.addresses = []                                     # keeps a list of references of all entries in the cache 
         self.cache = np.zeros((self.size,self.block_size))      # list of all the data values mapped to the address
         self.LRU = np.zeros((self.sets,self.assoc))             # structure to implement the LRU policy
