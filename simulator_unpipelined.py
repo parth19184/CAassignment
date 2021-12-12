@@ -103,7 +103,7 @@ class L1Cache :
         self.cache = np.zeros((self.size,self.block_size))      # list of all the data values mapped to the address
         self.LRU = np.zeros((self.sets,self.assoc))             # structure to implement the LRU policy
         self.dirty_bits = []                                    # write-back write strategy
-        self.counter = []                # to maintain count of the blocks in each set
+        self.counter = []                                       # to maintain count of the blocks in each set
         self.mem = mem                                          # memory object
 
     # initializing the cache and affiliated structures
@@ -194,7 +194,7 @@ class L1Cache :
         if(self.dirty_bits[det]==1):
             # write the values back to the memory
             for i in range(self.block_size):
-                self.mem.setData(ad-offset+i,'{:032b}'.format(self.cache[det][i]))
+                self.mem.setData(ad-offset+i,'{:032b}'.format(int(self.cache[det][i])))
 
     # def writeAllocate(self):
     #     # following write-allocate policy
@@ -209,7 +209,7 @@ class Mem :
     
     def initialize(self):
         i = 0
-        with open('binary.txt') as b:
+        with open('binary3.txt') as b:
             lines = b.readlines()
             # print(lines)
             for line in lines:
